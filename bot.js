@@ -461,11 +461,21 @@ function ProcessHelp(message) {
 	replyString += "rcon serverinfo: server.cfg info\r\n";
 	replyString += "rcon cq: list the player queue\r\n";
 	replyString += "\r\n";
+	replyString += "rcon cyclemap: Force move to the next map\r\n";
+	replyString += "rcon g_gravity <value>: Set gravity on the server. 800 = normal; 100 = moon\r\n";
 	replyString += "rcon kick <slot|name>: Kick a player off the server\r\n";
-	replyString += "rcon nuke <slot|name> [count]: Nuke a player\r\n";
+	replyString += "rcon g_nextmap <name>: Set the next map. Do not include the extension\r\n";
+	replyString += "rcon nuke <slot|name>: Nuke a player\r\n";
+	replyString += "rcon exec server.cfg: Reset the server\r\n";
+	replyString += "rcon reload: Restart the current map\r\n";
 	replyString += "rcon smite <slot|name>: Kill a player\r\n";
-	replyString += "rcon slap <slot|name> [count]: Slap a player around\r\n";
+	replyString += "rcon slap <slot|name>: Slap a player around\r\n";
 	replyString += "rcon swap <slot|name> <slot|name>: Swap two players between teams\r\n";
+	replyString += "rcon timelimit \"<minutes>\": Set the time limit\r\n";
+	replyString += "\r\n";
+	replyString += "rcon <svar> <value>: Set the server variable for any variable\r\n";
+	replyString += "\tA list of cvars is at <https://urbanterror.fandom.com/wiki/CVARS>\r\n";
+
 
 	message.channel.send(replyString);
 }
@@ -478,7 +488,12 @@ bot.on('messageCreate', (message) => {
 	// It will listen for messages that will start with `!`
 
 	if (!message.content) {
-		logger.error("are you using discord.js 14?");
+		var name = "";
+		if (message && message.author) {
+			name = message.author.username;
+		}
+		logger.error("no message content from " + name);
+		return;
 	}
 
 	if (message.content.substring(0, 1) == '!') {
