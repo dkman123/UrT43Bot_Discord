@@ -1,3 +1,6 @@
 /auth.json
 config
+config/auth.json
+config/config.json
 configCopy
+*.bak
