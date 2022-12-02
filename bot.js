@@ -1,9 +1,5 @@
 // UrT43Bot for discord rcon access
 
-// i started in discord.io, but it failed when my bot joined a live server so I abandoned it and switched to discord.js
-
-//var Discord = require('discord.io');
-//const Discord = require('discord.js');
 // using discord.js 14
 const { Client, Events, GatewayIntentBits, Partials  } = require('discord.js');
 const conf = require('./config/config.json')
@@ -33,7 +29,7 @@ const conf = require('./config/config.json')
 // permissions=8 for administrator, but above is all you need to listen and respond
 
 var logger = require('winston');
-var auth = require('./auth.json');
+var auth = require('./config/auth.json');
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -467,13 +463,14 @@ function ProcessHelp(message) {
 	replyString += "rcon g_nextmap <name>: Set the next map. Do not include the extension\r\n";
 	replyString += "rcon nuke <slot|name>: Nuke a player\r\n";
 	replyString += "rcon exec server.cfg: Reset the server\r\n";
+	replyString += "rcon removeIP \"<IP>\": to remove a banned IP\r\n";
 	replyString += "rcon reload: Restart the current map\r\n";
 	replyString += "rcon smite <slot|name>: Kill a player\r\n";
 	replyString += "rcon slap <slot|name>: Slap a player around\r\n";
 	replyString += "rcon swap <slot|name> <slot|name>: Swap two players between teams\r\n";
-	replyString += "rcon timelimit \"<minutes>\": Set the time limit\r\n";
+	replyString += "rcon set timelimit \"<minutes>\": Set the time limit\r\n";
 	replyString += "\r\n";
-	replyString += "rcon <svar> <value>: Set the server variable for any variable\r\n";
+	replyString += "rcon set <svar> <value>: Set the server variable for any variable\r\n";
 	replyString += "\tA list of cvars is at <https://urbanterror.fandom.com/wiki/CVARS>\r\n";
 
 
@@ -564,7 +561,7 @@ bot.on('messageCreate', (message) => {
 				
 				var rstr = "18:Skrech TEAM:BLUE KILLS:1 DEATHS:0 ASSISTS:0 PING:148 AUTH:--- IP:196.190.219.186:27960 CTF: CAP:0 RET:0 KFC:0 STC:0 PRF:0";
 				// remove IP
-				rstr = rstr.replace(/IP:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+/, '');
+				rstr = rstr.replace(/IP:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+/g, '');
 				// remove CTF
 				rstr = rstr.replace("CTF: ", '');
 				// squish KDA
@@ -573,7 +570,7 @@ bot.on('messageCreate', (message) => {
 				rstr = rstr.replace("ASSISTS:", "A:");
 				rstr = rstr.replace("TEAM:", "T:");
 				// remove auth
-				rstr = rstr.replace(/AUTH:[a-zA-Z\-]+ /, '');
+				rstr = rstr.replace(/AUTH:[a-zA-Z\-]+ /g, '');
 				console.log(rstr);
 			break;
 
