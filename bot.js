@@ -472,7 +472,8 @@ function ProcessHelp(message) {
 	replyString += "\r\n";
 	replyString += "rcon set <svar> <value>: Set the server variable for any variable\r\n";
 	replyString += "\tA list of cvars is at <https://urbanterror.fandom.com/wiki/CVARS>\r\n";
-
+	replyString += "rcon g_instagib <0|1>\r\n";
+	replyString += "rcon sv_infiniteStamina <0|1>\r\n";
 
 	message.channel.send(replyString);
 }
