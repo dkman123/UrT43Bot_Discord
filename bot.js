@@ -41,8 +41,18 @@ logger.add(new logger.transports.Console, {
 	colorize: true
 });
 
-//logger.level = 'debug';
+// {
+//   error: 0,
+//   warn: 1,
+//   info: 2,
+//   http: 3,
+//   verbose: 4,
+//   debug: 5,
+//   silly: 6
+// }
 logger.level = 'info';
+//logger.level = 'debug';
+//logger.level = 'silly';
 // DEBUG
 logger.debug('starting');
 // Initialize Discord Bot
@@ -103,6 +113,31 @@ function PermissionCheck(message) {
 	return true;
 }
 
+function ProcessLog(message, args) {
+	// NOTE: changing log level on the fly is "supposed" to work, but it is NOT
+	if (args.length < 1) {
+		logger.info('no log level specified');
+	}
+	else {
+		var level = args[0].toLowerCase();
+		if (level == "error"
+			|| level == "warn"
+			|| level == "info"
+			|| level == "http"
+			|| level == "verbose"
+			|| level == "debug"
+			|| level == "silly") {
+			logger.level = level;
+			message.channel.send("Logger set to " + level);
+		}
+		else {
+			logger.level = "info";
+			message.channel.send("Unrecognized level. Logger set to info. Available: error, warn, info, http, erbose, debug, silly.");
+		}
+		logger.info("Log level: " + logger.level.toString());
+	}
+}
+
 function ProcessStatus(message, args) {
 	logger.debug('sending status');
 
@@ -127,7 +162,7 @@ function ProcessStatus(message, args) {
 
 	client.on('message', function(reply, info){
 		//console.log('Data received from server : ' + reply.toString());
-		console.debug('Received %d bytes from %s:%d\n', reply.length, info.address, info.port);
+		console.debug("Received " + reply.length.toString() + " bytes from " + info.address.toString() + ":" + info.port.toString() + "\n");
 		client.close();
 
 		// "19" skips 0xFF0xFF0xFF0xFFstatusResponse\n
@@ -243,14 +278,14 @@ function ProcessRCon(message, args){
 		udpClient.on('message', function(reply, info){
 			var rstr = reply.toString();
 			rstr = rstr.replace(/....print\n/, '');
-			rstr = rstr.replace(/ +/, '');
+			rstr = rstr.replace(/ +/, ' ');
 			//logger.debug(Buffer.from(rstr, 'utf8').toString('hex'));
 			if (numBytesReceived == 0) {
 				logger.debug('Data received from server : ');
 			}
 			// DEBUG
 			//console.log(rstr);
-			logger.debug('Received %d bytes from %s:%d\n', reply.length, info.address, info.port);
+			logger.debug("Received " + reply.length.toString() + " bytes from " + info.address.toString() + ":" + info.port.toString() + "\n");
 			numBytesReceived += reply.length;
 			replyString += rstr;
 
@@ -347,38 +382,42 @@ function ProcessRConPlayers(message, args){
 		udpClient.on('message', function(reply, info){
 			var rstr = reply.toString();
 			rstr = rstr.replace(/....print\n/, '');
-			rstr = rstr.replace(/ +/, '');
+			rstr = rstr.replace(/ +/, ' ');
 			// DEBUG
 			//logger.debug(Buffer.from(rstr, 'utf8').toString('hex'));
 			if (numBytesReceived == 0) {
 				logger.debug('Data received from server : ');
 			}
+			logger.debug("Received " + reply.length.toString() + " bytes from " + info.address.toString() + ":" + info.port.toString() + "\n");
+			logger.silly(rstr);
 			// DEBUG
 			//console.log(rstr);
-			logger.debug('Received %d bytes from %s:%d\n', reply.length, info.address, info.port);
 			numBytesReceived += reply.length;
 
-			// remove elements
-			rstr = rstr.replace(/Map:[A-Za-z\-_\.0-9]+\n/, '');
-			rstr = rstr.replace(/GameType: [A-Z]+\n/, '');
-			rstr = rstr.replace(/MatchMode: O[FN]+\n/, '');
-			rstr = rstr.replace(/WarmupPhase: [YESNO]+\n/, '');
-			// NOTE: GameTime counts down
+			//// remove elements
+			//rstr = rstr.replace(/Map:[A-Za-z\-_\.0-9]+\n/, '');
+			//rstr = rstr.replace(/GameType: [A-Z]+\n/, '');
+			//rstr = rstr.replace(/MatchMode: O[FN]+\n/, '');
+			//rstr = rstr.replace(/WarmupPhase: [YESNO]+\n/, '');
+			//// NOTE: GameTime counts down
 
-			// remove IP
-			rstr = rstr.replace(/IP:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+\n/g, '');
-			// remove CTF
-			rstr = rstr.replace(/CTF: /g, '');
-			// squish KDA
-			rstr = rstr.replace(/KILLS:/g, "K:");
-			rstr = rstr.replace(/DEATHS:/g, "D:");
-			rstr = rstr.replace(/ASSISTS:/g, "A:");
-			rstr = rstr.replace(/TEAM:/g, "T:");
-			// remove auth
-			rstr = rstr.replace(/AUTH:[a-zA-Z0-9_\.\-]+ /g, '');
+			//// remove IP
+			//rstr = rstr.replace(/IP:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+\n/g, '');
+			//// remove CTF
+			//rstr = rstr.replace(/CTF: /g, '');
+			//// squish KDA
+			//rstr = rstr.replace(/KILLS:/g, "K:");
+			//rstr = rstr.replace(/DEATHS:/g, "D:");
+			//rstr = rstr.replace(/ASSISTS:/g, "A:");
+			//rstr = rstr.replace(/TEAM:/g, "T:");
+			//// remove auth
+			//rstr = rstr.replace(/AUTH:[a-zA-Z0-9_\.\-]+ /g, '');
+
+			// old parse spot
 
 			// DEBUG
-			//console.log(rstr);
+			//console.log(output);
+			//logger.silly(output);
 			replyString += rstr;
 
 			// DEBUG: if you want to see each packet received
@@ -417,19 +456,120 @@ function ProcessRConPlayers(message, args){
 			// DEBUG
 			//console.log(replyString);
 
-			// there's a message limit of 2000 chars
-			if (replyString.length > 2000) {
-				// remove Killed Flag Carrier
-				replyString = replyString.replace(/KFC:[0-9]+ /g, "");
-				// remove Stopped Cap
-				replyString = replyString.replace(/STC:[0-9]+ /g, "");
-				// remove Protected Flag
-				replyString = replyString.replace(/PRF:[0-9]+/g, "");
+			//SAMPLE:
+			//Map:ut4_jerusalem_f43\n
+			//Players: 13\n
+			//GameType: CTF\n
+			//Scores: R:0 B:0\n
+			//MatchMode: OFF\n
+			//WarmupPhase: NO\n
+			//GameTime: 00:13:43\n
+			//0:[LAG]diddy_ TEAM:RED KILLS:2 DEATHS:1 ASSISTS:0 PING:100 AUTH:didpul IP:189.131.97.5:27960\n
+			//CTF: CAP:0 RET:0 KFC:0 STC:0 PRF:0\n
+			//5:kJ'|Party TEAM:RED KILLS:0 DEATHS:1 ASSISTS:0 PING:48 AUTH:theripper IP:145.224.28.59:27960\n
+			//CTF: CAP:0 RET:0 KFC:0 STC:0 PRF:0\n
+			//
+			// CAP capture Flag
+			// RET return Flag
+			// KFC kill flag carrier
+			// STC stop cap
+			// PRF protect flag
+
+			logger.silly(replyString);
+			if (replyString.length > 0) {
+
+				// shorten Spec team name
+				replyString = replyString.replaceAll("SPECTATOR", "SPEC");
+				// split it per line
+				const arr = replyString.split("\n");
+				var Map = arr[0];
+				var PlayerCount = arr[1];
+				//var GameType = arr[2];
+				var Scores = arr[3];
+				//var MatchMode = arr[4];
+				//var WarmupPhase = arr[5];
+				var GameTime = arr[6];
+				// player fields
+				const Fld = {
+					// line 1
+					Slot: 0,
+					Name: 1,
+					Team: 3,
+					Kills: 5,
+					Deaths: 7,
+					Assists: 9,
+					Ping: 11,
+					Auth: 13,
+					IP: 15,
+					Port: 16,
+					// line 2
+					ctfBlank: 1,
+					Cap: 3,
+					Ret: 5,
+					KFC: 7,
+					STC: 9,
+					PRF: 11,
+				};
+				const maxName = 20;
+				var output = new String();
+				output += Map + "\n";
+				output += PlayerCount + "\n";
+				output += Scores + "\n";
+				output += GameTime + "\n";
+				output += "ID " + "Name".padEnd(maxName) + " Team   K   D   A Ping FC FR KC SC PF\n";
+
+				// players start at index 7
+				for(var idx = 7; idx < arr.length; idx += 2) {
+					var playerStr = arr[idx].replaceAll(":", " ");
+					// a clan/player name with colons in it
+					playerStr.replace(". AnP .", ".:AnP:.");
+					var info = playerStr.split(" ");
+					logger.silly(playerStr);
+					logger.silly(info);
+
+					if (info.length > Fld.Auth) {
+						output = output + info[Fld.Slot].padStart(2) + " "
+							+ info[Fld.Name].substring(0, maxName).padEnd(maxName) + " "
+							+ info[Fld.Team].padEnd(4) + " "
+							+ info[Fld.Kills].padStart(3) + " "
+							+ info[Fld.Deaths].padStart(3) + " "
+							+ info[Fld.Assists].padStart(3) + " "
+							+ info[Fld.Ping].padStart(4) + " ";
+
+						// 2nd line
+						playerStr = arr[idx + 1].replaceAll(":", " ");
+						info = playerStr.split(" ");
+						logger.silly(playerStr);
+						logger.silly(info);
+
+						if (info.length > Fld.STC) {
+							// some times it comes out as CTF CAP so the indices need to shift left by one
+							if (info[1] == "") {
+								output = output
+									+ info[Fld.Cap].padStart(2) + " "
+									+ info[Fld.Ret].padStart(2) + " "
+									+ info[Fld.KFC].padStart(2) + " "
+									+ info[Fld.STC].padStart(2) + " "
+									+ info[Fld.PRF].padStart(2) + "\n";
+							}
+							else {
+								output = output
+									+ info[Fld.Cap - 1].padStart(2) + " "
+									+ info[Fld.Ret - 1].padStart(2) + " "
+									+ info[Fld.KFC - 1].padStart(2) + " "
+									+ info[Fld.STC - 1].padStart(2) + " "
+									+ info[Fld.PRF - 1].padStart(2) + "\n";
+							}
+						}
+					}
+				}
+
+				// DEBUG
+				//console.log(output);
+				logger.silly(output);
+				replyString = output;
 			}
-			//if (replyString.length > 2000) {
-			//	logger.debug(replyString.length);
-			//	replyString = replyString.substring(1, 1986) + "...";
-			//}
+			
 
 			//message.channel.send("```" + replyString + "```");
 
@@ -518,6 +658,15 @@ bot.on('messageCreate', (message) => {
 
 				logger.debug('sending pong');
 				message.channel.send("Pong!");
+			break;
+
+			// !log
+			case 'log':
+				if(!PermissionCheck(message)) {
+					return;
+				}
+
+				ProcessLog(message, args);
 			break;
 
 			// !confCheck
