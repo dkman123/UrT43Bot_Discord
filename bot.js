@@ -11,8 +11,12 @@ const conf = require('./config/config.json')
 // "port": "27960",
 // "rconPassword": "xxxxxxxxxx"
 // }
-// leave channelIDsToListen as an empty array [ ] to disable filter
 
+// channelIDsToListen is a comma separated list of channels to listen to. So you can set up an rcon channel
+// leave channelIDsToListen as an empty array [ ] to disable filter
+// to get the channel ID turn on dev mode, right click the channel name, copy ID (at the bottom)
+
+// roleRequired is the role a user needs to be in order to issue commands (the bot will ignore you if you're not in this role)
 // NOTE: To get the RoleID
 //       Type command /@RoleName
 //       Replacing the RoleName with what you want
@@ -25,8 +29,8 @@ const conf = require('./config/config.json')
 // https://discord.com/developers/applications
 
 // add the bot to a server
-// https://discordapp.com/oauth2/authorize?&client_id=1042448223983382668&scope=bot&permissions=3072
-// permissions=8 for administrator, but above is all you need to listen and respond
+// https://discordapp.com/oauth2/authorize?&client_id=1042448223983382668&scope=bot&permissions=67584
+// permissions=8 for administrator, but above is all you need to listen and respond (Send Messages, Read Message History)
 
 var logger = require('winston');
 var auth = require('./config/auth.json');
@@ -69,7 +73,7 @@ bot.on('ready', () => {
 });
 
 function PermissionCheck(message) {
-	//console.log(message);
+	//console.log("PermissionCheck " + message);
 
 	if (!message.member) {
 		logger.debug("Member was empty");
@@ -450,6 +454,7 @@ function ProcessRConPlayers(message, args){
 }
 
 function ProcessHelp(message) {
+    logger.debug("ProcessHelp " + message);
 	var replyString = "Help: \r\n";
 	replyString += "status: A quick status \r\n";
 	replyString += "rcon status: Player slot, score, ping, and name \r\n";

@@ -1,12 +1,13 @@
 {"name":"UrT43Bot"
 ,"version":"1.0.0"
 ,"description":"Urban Terror 4.3 Discord Bot"
-,"main":"bot.js","author":"isopropanol"
+,"main":"bot.js"
+,"author":"isopropanol"
 ,"//discord.io":"https://github.com/woor/discord.io/tarball/gateway_v6"
 ,"dependencies":{
 	"buffer":"^6.0.3"
-,"dgram":"^1.0.1"
-,"discord.js":"^14.6.0"
-,"winston":"^3.8.2"
+	,"dgram":"^1.0.1"
+	,"discord.js":"^14.6.0"
+	,"winston":"^3.8.2"
 }
 }
